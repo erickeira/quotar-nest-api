@@ -23,10 +23,6 @@ export class CreateLojistaDto {
     @IsNotEmpty()
     lojst_email: string;
 
-    @IsOptional()
-    @IsDate()
-    lojst_data_cadastro: Date;
-
     @IsString()
     @IsOptional()
     lojst_cep?: string;
@@ -45,15 +41,7 @@ export class CreateLojistaDto {
 
     @IsString()
     @IsNotEmpty()
-    lojst_senha_hash: string;
-
-    @IsString()
-    @IsOptional()
-    lojst_token_inspiracao?: string;
-
-    @IsString()
-    @IsOptional()
-    lojst_token_recuperacao?: string;
+    lojst_senha: string;
 
     @IsNumber()
     @IsNotEmpty()
