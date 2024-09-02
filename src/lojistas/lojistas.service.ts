@@ -123,7 +123,6 @@ export class LojistasService {
 
     const whereClause: Prisma.LojistaWhereInput = {};
     
-
     if (params?.string) {
       whereClause.OR = [
         { lojst_nome : { contains: params.string.trim() } },

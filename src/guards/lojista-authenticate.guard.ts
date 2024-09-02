@@ -20,7 +20,6 @@ export class EnsureLojistaAuthenticateGuard implements CanActivate {
     }
 
     try {
-
       const lojista = await this.prismaService.lojista.findFirst({
         where: {
           lojst_web_token: token

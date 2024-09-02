@@ -1,30 +1,42 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, NotFoundException, InternalServerErrorException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, NotFoundException, InternalServerErrorException, HttpStatus, Query, UseGuards, Req } from '@nestjs/common';
 import { LojasService } from './lojas.service';
 import { CreateLojaDto } from './dto/create-loja.dto';
 import { UpdateLojaDto } from './dto/update-loja.dto';
+import { FiltrarLojaDto } from './dto/filtrar-loja.dto';
+import { EnsureLojistaAuthenticateGuard } from 'src/guards/lojista-authenticate.guard';
+import { Request } from 'express';
 
 @Controller('lojas')
 export class LojasController {
   constructor(private readonly lojasService: LojasService) {}
 
   @Post()
-  create(@Body() createLojaDto: CreateLojaDto) {
-    try{
-      return this.lojasService.create(createLojaDto);
-    } catch(e) {
-      throw new  HttpException( e.message || "Ocorreu um erro ao cadastrar loja.", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+  @UseGuards(EnsureLojistaAuthenticateGuard)
+  create(
+    @Req() { lojst_id }: Request,
+    @Body() createLojaDto: CreateLojaDto
+  ) {
+      return this.lojasService.create(createLojaDto, +lojst_id);
+  }
+
+  @Get('minhas-lojas')
+  @UseGuards(EnsureLojistaAuthenticateGuard)
+  findMinhasLojas(
+    @Req() { lojst_id }: Request,
+    @Query() params : FiltrarLojaDto
+  ) {
+    params.loja = lojst_id.toString();
+    return this.lojasService.findAll( params);
   }
 
   @Get()
-  findAll() {
-    try {
-      return this.lojasService.findAll();
-    } catch(e) {
-      throw new InternalServerErrorException( e.message || "Ocorreu um erro ao buscar lojas.");
-    }
+  findAll(
+    @Query() params : FiltrarLojaDto
+  ) {
+    return this.lojasService.findAll( params);
   }
 
+  
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.lojasService.findOne(+id);

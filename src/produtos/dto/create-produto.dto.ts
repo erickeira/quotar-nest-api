@@ -20,9 +20,13 @@ export class CreateProdutoDto {
   
   @IsNumber()
   @IsNotEmpty()
-  prodt_loja:       number;
+  loj_id:       number;
   
   @IsNumber()
   @IsNotEmpty()
-  prodt_tipo:       number; 
+  tp_id:       number; 
+
+  @IsString()
+  @IsNotEmpty()
+  tp_prec_nome:  string; 
 }

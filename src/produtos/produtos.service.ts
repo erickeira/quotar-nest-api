@@ -1,47 +1,74 @@
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, PRODT_STATUS } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { FotoDto } from './dto/foto.dto';
 import { CreateProdutoDto } from './dto/create-produto.dto';
 import { UpdateProdutoDto } from './dto/update-produto.dto';
 import { FiltrosDto } from './dto/filtros-produto.dto';
-import { LojasService } from 'src/lojas/lojas.service';
-import { TiposService } from 'src/tipos/tipos.service';
 
 @Injectable()
 export class ProdutosService {
 
   constructor(
-    private prismaService: PrismaService,
-    private lojasService: LojasService,
-    private tiposService: TiposService
+    private prismaService: PrismaService
   ){}
 
   async create(createProdutoDto: CreateProdutoDto) {    
     const hasProduto = await this.prismaService.produto.findFirst({
       where: {
         prodt_nome: createProdutoDto.prodt_nome,
-        loj_id: createProdutoDto.prodt_loja
+        loj_id: createProdutoDto.loj_id
       }
     })
 
-    if (hasProduto) throw new BadRequestException("Produto já cadastrado.");
+    if (hasProduto) throw new BadRequestException("Produto já cadastrado!");
 
-    const data = {
+    const hasLoja = await this.prismaService.loja.findFirst({
+      where: {
+        loj_id: createProdutoDto.loj_id
+      }
+    })
+
+    if (!hasLoja) throw new NotFoundException("Loja não encontrada!");
+
+    const hasTIpo = await this.prismaService.tipo.findFirst({
+      where: {
+        tp_id: createProdutoDto.tp_id
+      }
+    })
+
+    if (!hasTIpo) throw new NotFoundException("Tipo não encontrado!");
+
+    const data: Prisma.ProdutoCreateInput = {
       prodt_fotos: await this.uploadFotos(createProdutoDto.prodt_fotos),
       prodt_nome: createProdutoDto.prodt_nome,
       prodt_descricao: createProdutoDto.prodt_descricao,
-      loj_id: createProdutoDto.prodt_loja,
-      tp_id: createProdutoDto.prodt_tipo,
-      prodt_status: await this.escolheStatus("liberacao")
+      lojas: { connect: { loj_id: createProdutoDto.loj_id } },
+      tipos: { connect: { tp_id: createProdutoDto.tp_id } },
+      prodt_status: PRODT_STATUS.liberacao
     }
 
     const produto = await this.prismaService.produto.create({ data });
+    const tipoPreco = await this.prismaService.tipos_preco.create({ 
+      data :{
+        tp_prec_nome: createProdutoDto.tp_prec_nome
+      }
+    });
+    
+    await this.prismaService.variante.create({ 
+      data:{
+        vrnt_preco: 0,
+        vrnt_fotos: "[]",
+        vrnt_opcoes: "[]",
+        produtos:{ connect : { prodt_id: produto.prodt_id} },
+        tipos_precos: { connect: { tp_prec_id: tipoPreco.tp_prec_id }}
+      } 
+    });
 
     return {
       id: produto.prodt_id,
       message: "Produto criado com sucesso.",
-      statusCode: HttpStatus.CREATED
+      statusCode: HttpStatus.OK
     }
   }
 
@@ -64,10 +91,10 @@ export class ProdutosService {
     }
 
     if(filtros?.string){
-      const lojaIds = (await this.lojasService.findByNome(filtros?.string)).map(loja => loja.loj_id);
+      // const lojaIds = (await this.lojasService.findByNome(filtros?.string)).map(loja => loja.loj_id);
 
       whereClause.OR = [
-        {loj_id:{ in: lojaIds }},
+        // {loj_id:{ in: lojaIds }},
         {opcoes:{ some:{ opc_nome: { contains: filtros?.string.trim()}}}},
         {prodt_nome:{ contains: filtros?.string.trim() }},
         {prodt_descricao:{ contains: filtros?.string.trim() }},
