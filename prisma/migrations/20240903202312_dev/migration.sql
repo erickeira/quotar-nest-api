@@ -1,8 +1,8 @@
 -- CreateTable
 CREATE TABLE `bairros` (
     `bai_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `bai_nome` VARCHAR(50) NULL,
-    `cid_id` INTEGER NULL,
+    `bai_nome` VARCHAR(50) NOT NULL,
+    `cid_id` INTEGER NOT NULL,
 
     INDEX `cid_id`(`cid_id`),
     PRIMARY KEY (`bai_id`)
@@ -11,7 +11,7 @@ CREATE TABLE `bairros` (
 -- CreateTable
 CREATE TABLE `categorias` (
     `cat_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `nome` VARCHAR(150) NULL,
+    `cat_nome` VARCHAR(150) NOT NULL,
 
     PRIMARY KEY (`cat_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -19,8 +19,8 @@ CREATE TABLE `categorias` (
 -- CreateTable
 CREATE TABLE `cidades` (
     `cid_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `cid_nome` VARCHAR(50) NULL,
-    `est_id` INTEGER NULL,
+    `cid_nome` VARCHAR(50) NOT NULL,
+    `est_id` INTEGER NOT NULL,
 
     INDEX `est_id`(`est_id`),
     PRIMARY KEY (`cid_id`)
@@ -29,7 +29,7 @@ CREATE TABLE `cidades` (
 -- CreateTable
 CREATE TABLE `estados` (
     `est_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `est_nome` VARCHAR(50) NULL,
+    `est_nome` VARCHAR(50) NOT NULL,
 
     PRIMARY KEY (`est_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -55,20 +55,20 @@ CREATE TABLE `faturas` (
 -- CreateTable
 CREATE TABLE `lojas` (
     `loj_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `loj_nome` VARCHAR(100) NULL,
-    `loj_cnpj` VARCHAR(14) NULL,
+    `loj_nome` VARCHAR(100) NOT NULL,
+    `loj_cnpj` VARCHAR(14) NOT NULL,
     `loj_logo` VARCHAR(255) NULL,
     `loj_slogan` VARCHAR(255) NULL,
-    `loj_telefone` VARCHAR(20) NULL,
-    `loj_email` VARCHAR(150) NULL,
+    `loj_telefone` VARCHAR(20) NOT NULL,
+    `loj_email` VARCHAR(150) NOT NULL,
     `loj_text_sobre` VARCHAR(255) NULL,
-    `loj_cep` VARCHAR(10) NULL,
-    `loj_endereco` VARCHAR(150) NULL,
-    `loj_data_cadastro` DATETIME(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
-    `cid_id` INTEGER NULL,
-    `bai_id` INTEGER NULL,
-    `est_id` INTEGER NULL,
-    `lojst_id` INTEGER NULL,
+    `loj_cep` VARCHAR(10) NOT NULL,
+    `loj_endereco` VARCHAR(150) NOT NULL,
+    `loj_data_cadastro` DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+    `cid_id` INTEGER NOT NULL,
+    `bai_id` INTEGER NOT NULL,
+    `est_id` INTEGER NOT NULL,
+    `lojst_id` INTEGER NOT NULL,
 
     INDEX `bai_id`(`bai_id`),
     INDEX `cid_id`(`cid_id`),
@@ -80,22 +80,23 @@ CREATE TABLE `lojas` (
 -- CreateTable
 CREATE TABLE `lojistas` (
     `lojst_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `lojst_nome` VARCHAR(100) NULL,
-    `lojst_cpf` VARCHAR(11) NULL,
+    `lojst_nome` VARCHAR(100) NOT NULL,
+    `lojst_cpf` VARCHAR(11) NOT NULL,
     `lojst_img_perfil` VARCHAR(255) NULL,
-    `lojst_telefone` VARCHAR(20) NULL,
-    `lojst_email` VARCHAR(150) NULL,
-    `lojst_data_cadastro` DATETIME(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+    `lojst_telefone` VARCHAR(20) NOT NULL,
+    `lojst_email` VARCHAR(150) NOT NULL,
+    `lojst_data_cadastro` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `lojst_cep` VARCHAR(10) NULL,
     `lojst_endereco` VARCHAR(150) NULL,
-    `lojst_status` ENUM('ativo', 'pendente', 'inativo') NULL,
-    `lojst_loguin` VARCHAR(50) NULL,
-    `lojst_senha_hash` VARCHAR(255) NULL,
+    `lojst_status` ENUM('ativo', 'pendente', 'inativo') NOT NULL DEFAULT 'pendente',
+    `lojst_login` VARCHAR(50) NOT NULL,
+    `lojst_web_token` VARCHAR(255) NULL,
+    `lojst_senha_hash` VARCHAR(255) NOT NULL,
     `lojst_token_inspiracao` VARCHAR(255) NULL,
     `lojst_token_recuperacao` VARCHAR(255) NULL,
-    `cid_id` INTEGER NULL,
-    `bai_id` INTEGER NULL,
-    `est_id` INTEGER NULL,
+    `cid_id` INTEGER NOT NULL,
+    `bai_id` INTEGER NOT NULL,
+    `est_id` INTEGER NOT NULL,
     `lojst_loja_parceira` LONGTEXT NULL,
 
     INDEX `bai_id`(`bai_id`),
@@ -107,7 +108,7 @@ CREATE TABLE `lojistas` (
 -- CreateTable
 CREATE TABLE `opcoes` (
     `opc_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `opc_nome` VARCHAR(100) NULL,
+    `opc_nome` VARCHAR(100) NOT NULL,
     `opc_valores` LONGTEXT NOT NULL,
     `prodt_id` INTEGER NOT NULL,
 
@@ -174,23 +175,26 @@ CREATE TABLE `planos` (
 CREATE TABLE `produtos` (
     `prodt_id` INTEGER NOT NULL AUTO_INCREMENT,
     `prodt_fotos` LONGTEXT NULL,
-    `prodt_nome` VARCHAR(100) NULL,
+    `prodt_nome` VARCHAR(100) NOT NULL,
     `prodt_descricao` VARCHAR(255) NULL,
     `prodt_created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `prodt_updated_at` DATETIME(3) NOT NULL,
-    `loj_id` INTEGER NULL,
-    `tp_id` INTEGER NULL,
+    `prodt_updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `loj_id` INTEGER NOT NULL,
+    `tp_id` INTEGER NOT NULL,
+    `tp_prec_id` INTEGER NOT NULL,
+    `prodt_status` ENUM('ativo', 'liberacao', 'inativo') NOT NULL,
 
     INDEX `loj_id`(`loj_id`),
     INDEX `fk_tp_id`(`tp_id`),
+    INDEX `tp_prec_id`(`tp_prec_id`),
     PRIMARY KEY (`prodt_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `tipos` (
     `tp_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `tp_nome` VARCHAR(150) NULL,
-    `cat_id` INTEGER NULL,
+    `tp_nome` VARCHAR(150) NOT NULL,
+    `cat_id` INTEGER NOT NULL,
 
     INDEX `cat_id`(`cat_id`),
     PRIMARY KEY (`tp_id`)
@@ -199,7 +203,7 @@ CREATE TABLE `tipos` (
 -- CreateTable
 CREATE TABLE `tipos_precos` (
     `tp_prec_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `tp_prec_nome` VARCHAR(100) NULL,
+    `tp_prec_nome` VARCHAR(100) NOT NULL,
 
     PRIMARY KEY (`tp_prec_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -221,7 +225,7 @@ CREATE TABLE `usuarios` (
     `est_id` INTEGER NULL,
     `usr_prod_favoritos` LONGTEXT NULL,
     `usr_loj_favoritas` LONGTEXT NULL,
-    `usr_loguin` VARCHAR(50) NULL,
+    `usr_login` VARCHAR(50) NULL,
     `usr_senha_hash` VARCHAR(255) NULL,
     `usr_token_inspiracao` VARCHAR(255) NULL,
     `usr_token_recuperaca` VARCHAR(255) NULL,
@@ -235,14 +239,12 @@ CREATE TABLE `usuarios` (
 -- CreateTable
 CREATE TABLE `variantes` (
     `vrnt_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `vrnt_fotos` LONGTEXT NOT NULL,
+    `vrnt_fotos` LONGTEXT NULL,
     `vrnt_preco` DECIMAL(10, 2) NOT NULL,
-    `vrnt_opcoes` LONGTEXT NOT NULL,
-    `prodt_id` INTEGER NULL,
-    `tp_prec_id` INTEGER NOT NULL,
+    `vrnt_opcoes` LONGTEXT NULL,
+    `prodt_id` INTEGER NOT NULL,
 
     INDEX `prodt_id`(`prodt_id`),
-    INDEX `tp_prec_id`(`tp_prec_id`),
     PRIMARY KEY (`vrnt_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -327,6 +329,9 @@ ALTER TABLE `produtos` ADD CONSTRAINT `fk_tp_id` FOREIGN KEY (`tp_id`) REFERENCE
 ALTER TABLE `produtos` ADD CONSTRAINT `loj_id` FOREIGN KEY (`loj_id`) REFERENCES `lojas`(`loj_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 -- AddForeignKey
+ALTER TABLE `produtos` ADD CONSTRAINT `tp_prec_id` FOREIGN KEY (`tp_prec_id`) REFERENCES `tipos_precos`(`tp_prec_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+-- AddForeignKey
 ALTER TABLE `tipos` ADD CONSTRAINT `cat_id` FOREIGN KEY (`cat_id`) REFERENCES `categorias`(`cat_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 -- AddForeignKey
@@ -339,10 +344,7 @@ ALTER TABLE `usuarios` ADD CONSTRAINT `usuarios_ibfk_2` FOREIGN KEY (`bai_id`) R
 ALTER TABLE `usuarios` ADD CONSTRAINT `usuarios_ibfk_3` FOREIGN KEY (`est_id`) REFERENCES `estados`(`est_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `variantes` ADD CONSTRAINT `prodt_id` FOREIGN KEY (`prodt_id`) REFERENCES `produtos`(`prodt_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
-
--- AddForeignKey
-ALTER TABLE `variantes` ADD CONSTRAINT `tp_prec_id` FOREIGN KEY (`tp_prec_id`) REFERENCES `tipos_precos`(`tp_prec_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE `variantes` ADD CONSTRAINT `prodt_id` FOREIGN KEY (`prodt_id`) REFERENCES `produtos`(`prodt_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `visitantes` ADD CONSTRAINT `fk_bairro` FOREIGN KEY (`bai_id`) REFERENCES `bairros`(`bai_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;

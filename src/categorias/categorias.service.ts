@@ -1,8 +1,9 @@
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { UpdateCategoriaDto } from './dto/update-categoria.dto';
 import { CategoriaDto } from './dto/categoria.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { FiltrarCategoriasDto } from './dto/filtrar-categorias.dto';
 
 @Injectable()
 export class CategoriasService {
@@ -31,14 +32,36 @@ export class CategoriasService {
     
   }
 
-  async findAll() {
-    const data = await this.prismaService.categoria.findMany({
-      orderBy:{
-        cat_nome: 'asc'
-      }
-      
+  async findAll(params: FiltrarCategoriasDto) {
+    
+    const whereClause: Prisma.LojistaWhereInput = {};
+    const pagina = (+params?.pagina || 1)
+    const limite = (+params?.limite || 10)
+
+    const skip = (pagina - 1) * limite;
+    const take = limite;
+
+    const resultados = await this.prismaService.categoria.findMany({
+      where: whereClause,
+      skip: skip,
+      take: take,
+      orderBy: {
+        cat_nome: 'desc'
+      },
     });
-    return { data }
+
+    const total_resultados = await this.prismaService.lojista.count({where: whereClause});
+    const total = await this.prismaService.lojista.count();
+
+    return {
+      statusCode: HttpStatus.OK,
+      paginas: Math.ceil(total / limite),
+      pagina,
+      limite,
+      total,
+      total_resultados, 
+      resultados
+    }
   }
 
   async findOne(id: number) {
@@ -48,32 +71,39 @@ export class CategoriasService {
       }
     })
 
-    if(!categoria) throw new BadRequestException("Categoria não encontrada.")
+    if(!categoria) throw new NotFoundException("Categoria não encontrada.")
 
     return {
-      categoria,
-      statusCode: HttpStatus.OK
+      statusCode: HttpStatus.OK,
+      resultado : categoria,
     }
   }
 
   async update(id: number, updateCategoriaDto: UpdateCategoriaDto) {
-    return await this.prismaService.categoria.update({
+    await this.findOne(id)
+    await this.prismaService.categoria.update({
       data: updateCategoriaDto,
       where: {
         cat_id: id
       }
     });
+    return {
+      message: "Categoria atualizada com sucesso!",
+      statusCode: HttpStatus.OK
+    }
   }
 
   async remove(id: number) {
+    await this.findOne(id)
     const data = await this.prismaService.categoria.delete({
       where: {
         cat_id: id
       }
     })
+
     return {
       message: "Categoria deletada com sucesso",
-      statusCode: HttpStatus.NO_CONTENT
+      statusCode: HttpStatus.OK
     }
   }
 }

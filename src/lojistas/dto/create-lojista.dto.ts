@@ -37,7 +37,7 @@ export class CreateLojistaDto {
 
     @IsString()
     @IsNotEmpty()
-    lojst_loguin: string;
+    lojst_login: string;
 
     @IsString()
     @IsNotEmpty()

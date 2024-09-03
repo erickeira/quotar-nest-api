@@ -74,7 +74,7 @@ export class LojistasService {
 
     const hasLogin = await this.prismaService.lojista.findFirst({
       where: {
-        lojst_loguin: createLojistaDto.lojst_loguin
+        lojst_login: createLojistaDto.lojst_login
       }
     })
     if(hasLogin) {
@@ -91,7 +91,7 @@ export class LojistasService {
       lojst_cep: createLojistaDto.lojst_cep,
       lojst_endereco: createLojistaDto.lojst_endereco,
       lojst_status: createLojistaDto.lojst_status,
-      lojst_loguin: createLojistaDto.lojst_loguin,
+      lojst_login: createLojistaDto.lojst_login,
       lojst_senha_hash: await hash(createLojistaDto?.lojst_senha || "", 8),
       cidades:{
         connect: {
@@ -254,10 +254,10 @@ export class LojistasService {
       data.lojst_email = updateLojistaDto.lojst_email;
     }
 
-    if(updateLojistaDto.hasOwnProperty('lojst_loguin')) {
+    if(updateLojistaDto.hasOwnProperty('lojst_login')) {
       const hasLogin = await this.prismaService.lojista.findFirst({
         where: {
-          lojst_loguin: updateLojistaDto.lojst_loguin,
+          lojst_login: updateLojistaDto.lojst_login,
           lojst_id: {
             not: oldLojista.lojst_id
           }
@@ -266,7 +266,7 @@ export class LojistasService {
       if(hasLogin) {
         throw new BadRequestException("Login já cadastrado!");
       }
-      data.lojst_loguin = updateLojistaDto.lojst_loguin;
+      data.lojst_login = updateLojistaDto.lojst_login;
     }
 
     if(updateLojistaDto.hasOwnProperty('lojst_cep')) {
@@ -382,8 +382,8 @@ export class LojistasService {
     return lojista;
   }
 
-  async login(lojst_loguin: string, lojst_senha: string) {
-    const where: Prisma.LojistaWhereInput = { lojst_loguin };
+  async login(lojst_login: string, lojst_senha: string) {
+    const where: Prisma.LojistaWhereInput = { lojst_login };
     const lojista = await this.prismaService.lojista.findFirst({ where });
 
     if (lojista && await compare(lojst_senha, lojista.lojst_senha_hash)) {

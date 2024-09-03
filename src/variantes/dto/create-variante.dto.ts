@@ -21,8 +21,4 @@ export class CreateVarianteDto {
     @IsNotEmpty()
     prodt_id: number;
 
-    @IsNumber()
-    @IsNotEmpty()
-    tp_prec_id: number;
-
 }

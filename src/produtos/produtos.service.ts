@@ -39,21 +39,25 @@ export class ProdutosService {
 
     if (!hasTIpo) throw new NotFoundException("Tipo não encontrado!");
 
+    const tipoPreco = await this.prismaService.tipos_preco.create({ 
+      data :{
+        tp_prec_nome: createProdutoDto.tp_prec_nome
+      }
+    });
+
     const data: Prisma.ProdutoCreateInput = {
       prodt_fotos: await this.uploadFotos(createProdutoDto.prodt_fotos),
       prodt_nome: createProdutoDto.prodt_nome,
       prodt_descricao: createProdutoDto.prodt_descricao,
       lojas: { connect: { loj_id: createProdutoDto.loj_id } },
       tipos: { connect: { tp_id: createProdutoDto.tp_id } },
-      prodt_status: PRODT_STATUS.liberacao
+      tipos_precos: { connect: { tp_prec_id: tipoPreco.tp_prec_id }},
+      prodt_status: PRODT_STATUS.liberacao,
+      
     }
 
     const produto = await this.prismaService.produto.create({ data });
-    const tipoPreco = await this.prismaService.tipos_preco.create({ 
-      data :{
-        tp_prec_nome: createProdutoDto.tp_prec_nome
-      }
-    });
+
     
     await this.prismaService.variante.create({ 
       data:{
@@ -61,7 +65,6 @@ export class ProdutosService {
         vrnt_fotos: "[]",
         vrnt_opcoes: "[]",
         produtos:{ connect : { prodt_id: produto.prodt_id} },
-        tipos_precos: { connect: { tp_prec_id: tipoPreco.tp_prec_id }}
       } 
     });
 
@@ -191,13 +194,7 @@ export class ProdutosService {
             prodt_id: true,
             vrnt_fotos: true,
             vrnt_preco: true,
-            vrnt_opcoes: true,
-            tipos_precos: {
-              select: {
-                tp_prec_id: true,
-                tp_prec_nome: true
-              }
-            }
+            vrnt_opcoes: true
           }
         }
       }

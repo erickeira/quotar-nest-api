@@ -18,8 +18,7 @@ export class VariantesService {
       vrnt_fotos: JSON.stringify(variante.vrnt_fotos),
       vrnt_preco: variante.vrnt_preco,
       vrnt_opcoes: JSON.stringify(variante.vrnt_opcoes),
-      prodt_id: variante.prodt_id,
-      tp_prec_id: variante.tp_prec_id
+      prodt_id: variante.prodt_id
     }))
 
     const createdVariantes = await Promise.all(
@@ -53,8 +52,7 @@ export class VariantesService {
       data: {
         vrnt_fotos:   JSON.stringify(updateVarianteDto.vrnt_fotos),
         vrnt_preco:   updateVarianteDto.vrnt_preco,
-        vrnt_opcoes:  JSON.stringify(updateVarianteDto.vrnt_opcoes),
-        tp_prec_id:   updateVarianteDto.tp_prec_id
+        vrnt_opcoes:  JSON.stringify(updateVarianteDto.vrnt_opcoes)
       },
       where: { vrnt_id: id}
     })

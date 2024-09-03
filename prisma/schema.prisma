@@ -8,6 +8,33 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
+model agente {
+  age_id          Int               @id @default(autoincrement())
+  age_nome        String?           @db.VarChar(100)
+  age_login       String?           @db.VarChar(100)
+  age_senha_hash  String?           @db.VarChar(255)
+  age_web_token   String?           @db.VarChar(255)
+
+  permissoes      agente_permissao[] @relation("AgenteToPermissoes") 
+}
+
+model agentes_permissoes {  
+  perm_id        Int               @id @default(autoincrement())
+  perm_nome      String?           @db.VarChar(100)
+
+  agentes        agente_permissao[] @relation("AgenteToPermissoes") 
+}
+
+model agente_permissao {
+  age_id     Int
+  perm_id    Int
+
+  agente     agente           @relation(fields: [age_id], references: [age_id], name: "AgenteToPermissoes")
+  permissao  agentes_permissoes        @relation(fields: [perm_id], references: [perm_id], name: "AgenteToPermissoes")
+
+  @@id([age_id, perm_id])
+}
+
 model Bairro {
   bai_id     Int         @id @default(autoincrement())
   bai_nome   String      @db.VarChar(50)
@@ -25,7 +52,7 @@ model Bairro {
 model Categoria {
   cat_id   Int    @id @default(autoincrement())
   cat_nome String @db.VarChar(150)
-  tipos    Tipo[]
+  produtos    Produto[]
 
   @@map("categorias")
 }
@@ -117,7 +144,7 @@ model Lojista {
   lojst_cep               String?                  @db.VarChar(10)
   lojst_endereco          String?                  @db.VarChar(150)
   lojst_status            LOJST_STATUS             @default(pendente)
-  lojst_loguin            String                   @db.VarChar(50)
+  lojst_login             String                   @db.VarChar(50)
   lojst_web_token         String?                  @db.VarChar(255)
   lojst_senha_hash        String                   @db.VarChar(255)
   lojst_token_inspiracao  String?                  @db.VarChar(255)
@@ -212,39 +239,52 @@ model Planos {
 
 model Produto {
   prodt_id         Int          @id @default(autoincrement())
-  prodt_fotos      String?      @db.LongText
+  prodt_fotos      Json?      
   prodt_nome       String       @db.VarChar(100)
   prodt_descricao  String?      @db.VarChar(255)
   prodt_created_at DateTime     @default(now())
-  prodt_updated_at DateTime     @updatedAt
+  prodt_updated_at DateTime     @updatedAt @default(now())
   loj_id           Int
-  tp_id            Int
+  tp_prec_id       Int
+  cat_id           Int
   prodt_status     PRODT_STATUS
   opcoes           Opcao[]
-  tipos            Tipo         @relation(fields: [tp_id], references: [tp_id], onUpdate: Restrict, map: "fk_tp_id")
-  lojas            Loja         @relation(fields: [loj_id], references: [loj_id], onUpdate: Restrict, map: "loj_id")
+  tipos            ProdutoTipos[]
+  lojas            Loja         @relation(fields: [loj_id], references: [loj_id], onUpdate: Restrict, map: "fk_loj_id")
+  tipos_precos     Tipos_preco  @relation(fields: [tp_prec_id], references: [tp_prec_id], onUpdate: Restrict, map: "fk_tp_prec_id")
+  categoria        Categoria    @relation(fields: [cat_id], references: [cat_id])
   variantes        Variante[]
-
-  @@index([loj_id], map: "loj_id")
-  @@index([tp_id], map: "fk_tp_id")
+  
+  @@index([loj_id], map: "idx_loj_id")
+  @@index([tp_prec_id], map: "idx_tp_prec_id")
   @@map("produtos")
 }
 
 model Tipo {
-  tp_id      Int       @id @default(autoincrement())
-  tp_nome    String    @db.VarChar(150)
-  cat_id     Int
-  produtos   Produto[]
-  categorias Categoria @relation(fields: [cat_id], references: [cat_id], onUpdate: Restrict, map: "cat_id")
+  tp_id      Int           @id @default(autoincrement())
+  tp_nome    String        @db.VarChar(150)
+  produtos   ProdutoTipos[]
 
-  @@index([cat_id], map: "cat_id")
   @@map("tipos")
 }
+
+model ProdutoTipos {
+  prod_id Int
+  tp_id   Int
+
+  produto Produto @relation(fields: [prod_id], references: [prodt_id], onDelete: Cascade)
+  tipo    Tipo    @relation(fields: [tp_id], references: [tp_id], onDelete: Cascade)
+
+  @@id([prod_id, tp_id])
+  @@map("produto_tipos")
+}
+
+
 
 model Tipos_preco {
   tp_prec_id   Int        @id @default(autoincrement())
   tp_prec_nome String     @db.VarChar(100)
-  variantes    Variante[]
+  produtos    Produto[]
 
   @@map("tipos_precos")
 }
@@ -265,7 +305,7 @@ model Usuario {
   est_id                  Int?
   usr_prod_favoritos      String?                  @db.LongText
   usr_loj_favoritas       String?                  @db.LongText
-  usr_loguin              String?                  @db.VarChar(50)
+  usr_login               String?                  @db.VarChar(50)
   usr_senha_hash          String?                  @db.VarChar(255)
   usr_token_inspiracao    String?                  @db.VarChar(255)
   usr_token_recuperaca    String?                  @db.VarChar(255)
@@ -283,17 +323,15 @@ model Usuario {
 
 model Variante {
   vrnt_id             Int                  @id @default(autoincrement())
-  vrnt_fotos          String?              @db.LongText
+  vrnt_fotos          Json?              
   vrnt_preco          Decimal              @db.Decimal(10, 2)
-  vrnt_opcoes         String?              @db.LongText
+  vrnt_opcoes         Json?              
   prodt_id            Int
-  tp_prec_id          Int
   orcamento_variantes Orcamento_variante[]
   produtos            Produto              @relation(fields: [prodt_id], references: [prodt_id], onDelete: Cascade, map: "prodt_id")
-  tipos_precos        Tipos_preco          @relation(fields: [tp_prec_id], references: [tp_prec_id], onUpdate: Restrict, map: "tp_prec_id")
-
+  
   @@index([prodt_id], map: "prodt_id")
-  @@index([tp_prec_id], map: "tp_prec_id")
+
   @@map("variantes")
 }
 

@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { CategoriasService } from './categorias.service';
 import { UpdateCategoriaDto } from './dto/update-categoria.dto';
 import { CategoriaDto } from './dto/categoria.dto';
+import { FiltrarCategoriasDto } from './dto/filtrar-categorias.dto';
 
 @Controller('categorias')
 export class CategoriasController {
@@ -13,8 +14,10 @@ export class CategoriasController {
   }
 
   @Get()
-  findAll() {
-    return this.categoriasService.findAll();
+  findAll(
+    @Query() params : FiltrarCategoriasDto
+  ) {
+    return this.categoriasService.findAll(params);
   }
 
   @Get(':id')
